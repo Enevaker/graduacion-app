@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muñecos de Graduación — Pedidos</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<header class="site-header" id="siteHeader" style="display:none">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">GS</div>
+      <div class="logo-text">
+        <h1>GS Dolls & Creations</h1>
+        <p>Sistema de Pedidos 2026</p>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-btn" id="navHome" onclick="goTo('home')">🏠 Inicio</button>
+      <button class="nav-btn" id="navPedidos" onclick="goTo('pedidos')">📋 Mis Pedidos</button>
+      <button class="nav-btn" id="navNuevo" onclick="goTo('nuevo')">➕ Nuevo</button>
+      <button class="nav-btn admin-only" id="navAdmin" onclick="goTo('admin')" style="display:none">⚙️ Admin</button>
+      <a href="/" class="nav-btn" style="text-decoration:none;color:inherit;">🏡 Inicio</a>
+      <button class="nav-btn nav-logout" onclick="logout()">Salir</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ══ PÁGINAS ══════════════════════════════════════════════ -->
+<!-- Loading inicial mientras se verifica la sesión -->
+<div id="appLoading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fdf8f9;z-index:9999;">
+  <div style="text-align:center">
+    <div style="width:48px;height:48px;border-radius:50%;border:4px solid #f0dde3;border-top-color:#e8526a;animation:spin .7s linear infinite;margin:0 auto 14px;"></div>
+    <p style="font-family:'Nunito',sans-serif;color:#aaa;font-size:.9rem;">Cargando…</p>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<div id="app">
+
+  <!-- HOME (cliente) -->
+  <div id="page-home" class="page" style="display:none">
+    <div class="home-hero">
+      <div class="home-hero-inner">
+        <div class="home-greeting">
+          <div class="home-avatar">🎓</div>
+          <div>
+            <h2 class="home-name" id="homeUserName">¡Hola!</h2>
+            <p class="home-sub">¿Qué quieres hacer hoy?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="home-cards">
+
+      <div class="home-card hc-rose" onclick="goTo('pedidos')">
+        <div class="hc-icon">📋</div>
+        <div class="hc-info">
+          <h3>Ver mis pedidos</h3>
+          <p>Revisa el estado y avance de cada pedido que has hecho</p>
+        </div>
+        <div class="hc-arrow">›</div>
+      </div>
+
+      <div class="home-card hc-navy" onclick="goTo('nuevo')">
+        <div class="hc-icon">➕</div>
+        <div class="hc-info">
+          <h3>Nuevo Pedido</h3>
+          <p>Crea un pedido nuevo de muñecos de graduación</p>
+        </div>
+        <div class="hc-arrow">›</div>
+      </div>
+
+    </div>
+    <div style="text-align:center;padding:16px 20px 32px">
+      <button class="btn btn-outline" onclick="logout()" style="color:var(--g400);border-color:var(--g200)">🚪 Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="page-auth" class="page-auth" style="display:none">
+    <div class="auth-card">
+      <div class="auth-logo" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#e8526a,#c03050);display:inline-flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;color:white;font-family:'Nunito',sans-serif;margin:0 auto 8px;">GS</div>
+      <h1 class="auth-title">GS Dolls & Creations</h1>
+      <p class="auth-sub">Sistema de Pedidos 2026</p>
+
+      <div id="formLogin">
+        <div class="field"><label>Nombre</label>
+          <input type="text" id="loginNombre" placeholder="Tu nombre" autocomplete="username"
+            onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div class="field"><label>Contraseña</label>
+          <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div id="loginError" class="auth-error" style="display:none"></div>
+        <button class="btn btn-primary btn-block" onclick="doLogin()" id="btnLogin">Iniciar sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIS PEDIDOS -->
+  <div id="page-pedidos" class="page" style="display:none">
+    <div class="page-inner">
+      <div class="client-back" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--navy);margin:0">📋 Mis Pedidos</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="goTo('nuevo')">➕ Nuevo Pedido</button>
+          <button class="btn btn-outline btn-sm" onclick="logout()" style="color:var(--g400);border-color:var(--g200)">🚪 Salir</button>
+        </div>
+      </div>
+      <div id="pedidosLista">
+        <div class="loading-state">Cargando pedidos…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUEVO PEDIDO -->
+  <div id="page-nuevo" class="page" style="display:none">
+    <div class="page-inner">
+      <div class="page-header">
+        <button class="btn btn-outline btn-sm client-back" onclick="goTo('pedidos')">← Mis Pedidos</button>
+        <h2>➕ Nuevo Pedido</h2>
+      </div>
+      <div id="formPedido"><!-- inyectado por JS --></div>
+    </div>
+  </div>
+
+  <!-- DETALLE PEDIDO -->
+  <div id="page-detalle" class="page" style="display:none">
+    <div class="page-inner">
+      <div class="page-header">
+        <h2 id="detalleTitulo">Detalle del pedido</h2>
+        <div style="display:flex;gap:8px;align-items:center" id="detalleAcciones"></div>
+      </div>
+      <div id="detalleContenido"></div>
+    </div>
+  </div>
+
+  <!-- PERFIL -->
+  <div id="page-perfil" class="page" style="display:none">
+    <div class="page-inner">
+      <div class="page-header">
+        <button class="btn btn-outline btn-sm client-back" onclick="goTo('pedidos')">← Mis Pedidos</button>
+        <h2>👤 Mi Perfil</h2>
+      </div>
+      <div id="perfilContenido"></div>
+    </div>
+  </div>
+
+  <!-- MI ESCUELA (clientes) -->
+  <div id="page-escuelas" class="page" style="display:none">
+    <div class="page-inner">
+      <div class="page-header">
+        <button class="btn btn-outline btn-sm client-back" onclick="goTo('pedidos')">← Mis Pedidos</button>
+        <h2>🏫 Mi Escuela</h2>
+      </div>
+      <div id="escuelasContenido">
+        <div class="loading-state">Cargando escuelas…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="page-admin" class="page" style="display:none">
+    <div class="page-inner">
+      <div class="page-header">
+        <h2>⚙️ Panel de Administrador</h2>
+        <button class="btn btn-outline btn-sm" onclick="exportarTodosExcel()">📊 Exportar todo</button>
+        <button class="btn btn-outline btn-sm" onclick="logout()" style="color:var(--g400);border-color:var(--g200)">🚪 Salir</button>
+      </div>
+      <div class="admin-tab-nav">
+        <button class="admin-tab-btn atb-active" id="atb-pedidos"    onclick="setAdminTab('pedidos')">📋 Pedidos</button>
+        <button class="admin-tab-btn"            id="atb-estados"    onclick="setAdminTab('estados')">🏷️ Estatus</button>
+        <button class="admin-tab-btn"            id="atb-dashboard"  onclick="setAdminTab('dashboard')">🪆 Detalles de muñeco</button>
+        <button class="admin-tab-btn"            id="atb-finanzas"   onclick="setAdminTab('finanzas')">💰 Finanzas</button>
+        <button class="admin-tab-btn"            id="atb-escuelas"   onclick="setAdminTab('escuelas')">🏫 Escuelas</button>
+        <button class="admin-tab-btn"            id="atb-usuarios"   onclick="setAdminTab('usuarios')">👤 Usuarios</button>
+      </div>
+      <div id="atab-pedidos">
+        <div id="adminFiltros" class="admin-filtros"></div>
+        <div id="adminLista"></div>
+      </div>
+      <div id="atab-estados" style="display:none">
+        <div id="adminEstadosContenido"></div>
+      </div>
+      <div id="atab-dashboard" style="display:none">
+        <div id="adminDashboardContenido"></div>
+      </div>
+      <div id="atab-finanzas" style="display:none">
+        <div id="adminFinanzasContenido"></div>
+      </div>
+      <div id="atab-escuelas" style="display:none">
+        <div id="adminEscuelasContenido"></div>
+      </div>
+      <div id="atab-usuarios" style="display:none">
+        <div id="adminUsuariosContenido"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" id="modalBox" onclick="event.stopPropagation()">
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/pedidos-form.js"></script>
+<script src="/js/pedidos-lista.js"></script>
+<script src="/js/admin.js"></script>
+<script src="/js/escuelas.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
